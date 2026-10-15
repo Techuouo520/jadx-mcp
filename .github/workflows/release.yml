@@ -7,6 +7,14 @@ on:
 
     branches: [ "release-test/v*.*.*" ]
 
+  # manual release from Actions page: 'Run workflow' with version, creates draft release and tag 'v<version>'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, numbers only, e.g. 1.5.6.1"
+        required: true
+        type: string
+
 # additional permissions for provided GitHub token to create new release
 permissions:
   contents: write
@@ -25,9 +33,18 @@ jobs:
 
       - name: Set jadx version
         uses: actions/github-script@v9
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         with:
           script: |
-            const jadxVersion = context.ref.split('/').pop().substring(1)
+            let jadxVersion = context.ref.split('/').pop().substring(1)
+            if (context.eventName === 'workflow_dispatch') {
+              jadxVersion = process.env.RELEASE_VERSION.trim()
+              if (!/^\d+(\.\d+){2,3}$/.test(jadxVersion)) {
+                core.setFailed(`Invalid version '${jadxVersion}', expected numbers like 1.5.6.1`)
+                return
+              }
+            }
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
@@ -95,9 +112,18 @@ jobs:
 
       - name: Set jadx version
         uses: actions/github-script@v9
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         with:
           script: |
-            const jadxVersion = context.ref.split('/').pop().substring(1)
+            let jadxVersion = context.ref.split('/').pop().substring(1)
+            if (context.eventName === 'workflow_dispatch') {
+              jadxVersion = process.env.RELEASE_VERSION.trim()
+              if (!/^\d+(\.\d+){2,3}$/.test(jadxVersion)) {
+                core.setFailed(`Invalid version '${jadxVersion}', expected numbers like 1.5.6.1`)
+                return
+              }
+            }
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
@@ -128,9 +154,18 @@ jobs:
 
       - name: Set jadx version and release name
         uses: actions/github-script@v9
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         with:
           script: |
-            const jadxVersion = context.ref.split('/').pop().substring(1)
+            let jadxVersion = context.ref.split('/').pop().substring(1)
+            if (context.eventName === 'workflow_dispatch') {
+              jadxVersion = process.env.RELEASE_VERSION.trim()
+              if (!/^\d+(\.\d+){2,3}$/.test(jadxVersion)) {
+                core.setFailed(`Invalid version '${jadxVersion}', expected numbers like 1.5.6.1`)
+                return
+              }
+            }
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
@@ -174,6 +209,9 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.JADX_VERSION }}
+          # tag is created on draft publish (for manual run, at the selected branch commit)
+          tag_name: ${{ format('v{0}', env.JADX_VERSION) }}
+          target_commitish: ${{ github.sha }}
           draft: true
           fail_on_unmatched_files: true
           files: |
