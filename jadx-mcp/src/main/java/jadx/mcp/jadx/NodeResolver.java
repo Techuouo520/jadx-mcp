@@ -158,7 +158,7 @@ public final class NodeResolver {
 	}
 
 	/**
-	 * Resolve method by full id ('cls->name(args)ret') or by member reference inside class:
+	 * Resolve method by full id ({@code cls->name(args)ret}) or by member reference inside class:
 	 * descriptor 'name(I)V', descriptor without return type 'name(I)', Java style 'name(int, String)'
 	 * or name only.
 	 */
@@ -331,7 +331,7 @@ public final class NodeResolver {
 	}
 
 	/**
-	 * Resolve field by full id 'cls->name:type' or by name/'name:type' inside class
+	 * Resolve field by full id {@code cls->name:type} or by name/{@code name:type} inside class
 	 */
 	public JavaField resolveField(@Nullable String className, String fieldRef) throws ToolException {
 		String ref = fieldRef.trim();
@@ -395,7 +395,7 @@ public final class NodeResolver {
 	}
 
 	/**
-	 * Resolve any node by stable id. Ids of members contain '->', variables contain '#'.
+	 * Resolve any node by stable id. Ids of members contain {@code ->}, variables contain {@code #}.
 	 * Without member separator: class, then package.
 	 */
 	public JavaNode resolveById(String id) throws ToolException {
