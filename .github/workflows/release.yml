@@ -7,7 +7,8 @@ on:
 
     branches: [ "release-test/v*.*.*" ]
 
-  # manual release from Actions page: 'Run workflow' with version, creates draft release and tag 'v<version>'
+  # manual release from Actions page: 'Run workflow' with version,
+  # publishes release named '<version>' with tag set to short commit hash
   workflow_dispatch:
     inputs:
       version:
@@ -167,6 +168,10 @@ jobs:
               }
             }
             core.exportVariable('JADX_VERSION', jadxVersion);
+            // manual run: tag with short commit hash, publish immediately; tag push: keep tag, create draft
+            const manual = context.eventName === 'workflow_dispatch'
+            core.exportVariable('RELEASE_TAG', manual ? context.sha.substring(0, 7) : `v${jadxVersion}`);
+            core.exportVariable('RELEASE_DRAFT', manual ? 'false' : 'true');
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -209,10 +214,9 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.JADX_VERSION }}
-          # tag is created on draft publish (for manual run, at the selected branch commit)
-          tag_name: ${{ format('v{0}', env.JADX_VERSION) }}
+          tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
-          draft: true
+          draft: ${{ env.RELEASE_DRAFT == 'true' }}
           fail_on_unmatched_files: true
           files: |
             build/jadx-*.zip
